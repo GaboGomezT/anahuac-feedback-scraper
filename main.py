@@ -1,19 +1,58 @@
-from bs4 import BeautifulSoup
-import requests
+import time
+from selenium import webdriver
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+from selenium.webdriver.firefox.options import Options
+
+
+login_url = "https://anahuac.instructure.com/login/canvas"
+
+binary = '/usr/bin/firefox'
+options = Options()
+options.headless = True
+options.binary = binary
+cap = DesiredCapabilities().FIREFOX
+cap["marionette"] = True
+print("loading headless driver")
+driver = webdriver.Firefox(options=options, capabilities=cap, executable_path="/home/gabo/drivers/geckodriver")
 
 # Start the session
-session = requests.Session()
+# session = requests.Session()
 
+# Getting the token
+result = driver.get(login_url)
+authenticity_token = driver.find_element_by_name("authenticity_token").get_attribute("value")
+print("got auth token")
 # Create the payload
-payload = {'_username':'[YOUR_USERNAME]', 
-          '_password':'[YOUR_PASSWORD]'
-         }
+payload = {'pseudonym_session[unique_id]':'', 
+          'pseudonym_session[password]':'',
+          "authenticity_token": authenticity_token
+          }
+print("sending id")
+driver.find_element_by_name("pseudonym_session[unique_id]").send_keys(payload["pseudonym_session[unique_id]"])
+print("sending password")
+driver.find_element_by_name("pseudonym_session[password]").send_keys(payload["pseudonym_session[password]"])
+print("clicking login button")
+driver.find_element_by_class_name("Button--login").click()
+print("waiting for page load")
+WebDriverWait(driver, 10).until(EC.title_contains("Tablero"))
+driver.get("https://anahuac.instructure.com/courses/1926/assignments")
+assignments = driver.find_elements_by_class_name("assignment")
 
-# Post the payload to the site to log in
-s = session.post("https://www.chess.com/login_check", data=payload)
+for hw in assignments:
+    link = hw.find_element_by_xpath("//div/div/div[2]/a").get_attribute("href")
+    print(link)
+# # Post the payload to the site to log in
+# s = driver.post(login_url, data=payload)
+# print(s)
+# # Navigate to the next page and scrape the data
+# s = driver.get('https://anahuac.instructure.com/courses/1926/assignments')
+# print(s)
 
-# Navigate to the next page and scrape the data
-s = session.get('https://www.chess.com/today')
-
-soup = BeautifulSoup(s.text, 'html.parser')
-soup.find('img')['src']
+# driver.quit()
+# soup = BeautifulSoup(s.text, 'html.parser')
+# print(soup)
+# for item in soup.select(".div.collectionViewItems ig-list draggable"):
+#     print(item)
