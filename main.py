@@ -1,4 +1,5 @@
 import time
+import requests
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -83,3 +84,7 @@ finally:
 
 print("*"*100)
 print(src_links)
+for name,url in src_links.items():
+    r = requests.get(url, allow_redirects=True)
+
+    open(f"retro/{name}.mp4", 'wb').write(r.content)
