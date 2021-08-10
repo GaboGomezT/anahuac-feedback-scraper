@@ -36,23 +36,44 @@ print("sending password")
 driver.find_element_by_name("pseudonym_session[password]").send_keys(payload["pseudonym_session[password]"])
 print("clicking login button")
 driver.find_element_by_class_name("Button--login").click()
-print("waiting for page load")
-WebDriverWait(driver, 10).until(EC.title_contains("Tablero"))
-driver.get("https://anahuac.instructure.com/courses/1926/assignments")
-assignments = driver.find_elements_by_class_name("assignment")
+try:
+    # print("waiting for page load")
+    WebDriverWait(driver, 10).until(EC.title_contains("Tablero"))
+    print("Going to assignments page")
+    driver.get("https://anahuac.instructure.com/courses/1926/assignments")
+    print("waiting for page to load")
+    time.sleep(10)
+    assignments = driver.find_elements_by_class_name("ig-title")
 
-for hw in assignments:
-    link = hw.find_element_by_xpath("//div/div/div[2]/a").get_attribute("href")
-    print(link)
-# # Post the payload to the site to log in
-# s = driver.post(login_url, data=payload)
-# print(s)
-# # Navigate to the next page and scrape the data
-# s = driver.get('https://anahuac.instructure.com/courses/1926/assignments')
-# print(s)
+    for hw in assignments:
+        attempts = 0
+        while attempts < 3:
+            try:
+                print(hw.get_attribute('href'))
+                break
+            except Exception as e:
+                print(e)
+                print("trying again")
+            attempts += 1
 
-# driver.quit()
-# soup = BeautifulSoup(s.text, 'html.parser')
-# print(soup)
-# for item in soup.select(".div.collectionViewItems ig-list draggable"):
-#     print(item)
+        # link = hw.get_attribute("href")
+        # print(link)
+    # # Post the payload to the site to log in
+    # s = driver.post(login_url, data=payload)
+    # print(s)
+    # # Navigate to the next page and scrape the data
+    # s = driver.get('https://anahuac.instructure.com/courses/1926/assignments')
+    # print(s)
+
+    # driver.quit()
+    # soup = BeautifulSoup(s.text, 'html.parser')
+    # print(soup)
+    # for item in soup.select(".div.collectionViewItems ig-list draggable"):
+    #     print(item)
+except Exception as e:
+    print(e)
+    print(driver.page_source)
+finally:
+    print("exiting browser")
+    driver.quit()
+
